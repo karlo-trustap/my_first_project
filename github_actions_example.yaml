@@ -1,0 +1,72 @@
+name: CI/CD Workflow
+
+# Defines when the action will run.
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        # Checkout your repository content into GitHub Actions runner
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+        # Set up a Python environment for testing or scripts
+
+      - name: Build Artifact
+        run: |
+          # Your build commands go here
+          echo "Building artifact..."
+          # This is where you would put commands to build your project.
+
+      - name: Run Tests
+        run: |
+          # Your test commands go here
+          echo "Running tests..."
+          # This is where you would put commands to test your project.
+
+  provision-and-deploy-staging:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: '1.0.0'
+        # Sets up Terraform CLI in the GitHub Actions runner
+
+      - name: Terraform Init and Apply
+        run: |
+          terraform init
+          terraform apply -auto-approve
+        # Initializes and applies Terraform code, which provisions the staging server
+
+      - name: Deploy to Staging Server
+        run: |
+          # Your deployment commands go here
+          echo "Deploying to staging server..."
+          # This is where you would put commands or actions to deploy your project to the staging server.
+
+  deploy-to-production:
+    needs: provision-and-deploy-staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      # The production environment requires a manual approval
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Deploy to Production Server
+        run: |
+          # Your deployment commands go here
+          echo "Deploying to production server..."
+          # This is where you would put commands or actions to deploy your project to the production server.
